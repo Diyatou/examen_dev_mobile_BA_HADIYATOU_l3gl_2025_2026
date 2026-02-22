@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/User.dart';
+import '../models/user.dart';
 
 class AuthProvider extends ChangeNotifier {
   //[span_2](start_span) ; // Propriétés privées[span_2](end_span)
