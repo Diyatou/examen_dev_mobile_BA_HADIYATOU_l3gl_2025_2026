@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sunu_task/core/theme/app_theme.dart';
 import 'package:sunu_task/screens/splash/splash_screen.dart';
 import 'package:sunu_task/services/storage_service.dart';
-
 
 import 'package:sunu_task/providers/app_provider.dart';
 import 'package:sunu_task/providers/auth_provider.dart';
@@ -19,7 +19,7 @@ void main() async {
   await StorageService.instance.init();
 
   runApp(
-    MultiProvider(
+    MultiProvider (
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()..init()),
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
@@ -52,11 +52,17 @@ class SunuTask extends StatelessWidget {
 
           // 3. On regarde si l'utilisateur est connecté via AuthProvider
           return Consumer<AuthProvider>(
-            builder: (context, auth, _) {
-              return auth.isAuthenticated
-                  ? const HomeScreen()
-                  : const LoginScreen();
-            },
+              builder: (context, auth, _) {
+                // 1. Cette ligne va s'afficher dans l'onglet RUN en bas
+                print("* DEBUG : isAuthenticated = ${auth.isAuthenticated}");
+
+                // 2. Utilise cette structure simple
+                if (auth.isAuthenticated) {
+                  return const HomeScreen();
+                } else {
+                  return const LoginScreen();
+                }
+              }
           );
         },
       ),

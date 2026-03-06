@@ -3,7 +3,7 @@ import '../models/user.dart';
 
 class AuthProvider extends ChangeNotifier {
   //[span_2](start_span) ; // Propriétés privées[span_2](end_span)
-  User? _currentUser;
+  User? _currentUser ;
   bool _isLoading = false;
   String? _error;
 
@@ -18,6 +18,7 @@ class AuthProvider extends ChangeNotifier {
   _isLoading = true;
   notifyListeners();
   // Logique StorageService à venir...
+
   _isLoading = false;
   notifyListeners();
   }
