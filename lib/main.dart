@@ -46,6 +46,8 @@ class SunuTask extends StatelessWidget {
       // On réinstalle le "cerveau" de l'application ici
       home: Consumer<AppProvider>(
         builder: (context, app, _) {
+
+          // 1. Splash tant que ce n'est pas initialisé
           // 1. Splash tant que ce n'est pas initialisé
           if (!app.isInitialized) return const SplashScreen();
 
