@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
+import '../home/home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -27,14 +28,20 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success) {
-        // Le Consumer dans main.dart gérera la redirection vers Home
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Connexion réussie !")),
-        );
+        // AJOUT DE LA NAVIGATION REQUISE PAR LA CONSIGNE
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false, // Efface tout l'historique de navigation
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.error ?? "Erreur de connexion")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(authProvider.error ?? "Erreur de connexion")),
+          );
+        }
       }
     }
   }
