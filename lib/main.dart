@@ -46,13 +46,13 @@ class SunuTask extends StatelessWidget {
       // On réinstalle le "cerveau" de l'application ici
       home: Consumer<AppProvider>(
         builder: (context, app, _) {
-          // 1. Si pas initialisé -> Splash
+          // 1. Splash tant que ce n'est pas initialisé
           if (!app.isInitialized) return const SplashScreen();
 
-          // 2. Si onboarding pas fait -> Onboarding
+          // 2. Onboarding si pas fait
           if (!app.isOnboardingComplete) return const OnboardingScreen();
 
-          // 3. Sinon, on vérifie l'Auth
+          // 3. Sinon, on regarde l'Auth
           return Consumer<AuthProvider>(
             builder: (context, auth, _) {
               return auth.isAuthenticated
