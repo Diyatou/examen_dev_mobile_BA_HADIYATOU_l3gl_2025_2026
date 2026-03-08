@@ -11,32 +11,22 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Test des Widgets")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
+      appBar: AppBar(title: const Text("Accueil")),
+      body: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Test du CustomTextField
-            const CustomTextField(
-              label: "Nom d'utilisateur",
-              prefixIcon: Icons.person,
-              hint: "Entrez votre nom",
+            const Text(
+              "Bienvenue sur SunuTask !",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 20),
-
-            // Test du CustomButton
+            const SizedBox(height: 30),
             CustomButton(
-              text: "MON BOUTON TEST",
+              text: "Commencer",
+              width: 200,
               onPressed: () {
-                print("Le bouton fonctionne !");
+                print("L'aventure commence !");
               },
-            ),
-            const SizedBox(height: 20),
-
-            // Test du bouton en mode chargement
-            const CustomButton(
-              text: "Chargement...",
-              isLoading: true,
             ),
           ],
         ),

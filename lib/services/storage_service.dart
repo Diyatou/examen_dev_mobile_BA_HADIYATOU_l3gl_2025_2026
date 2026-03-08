@@ -50,4 +50,8 @@ class StorageService {
     await _prefs.setBool(_keyOnboardingConmplete, value);
   }
 
+  Future<void> clear() async {
+    await _prefs?.clear(); // Cette ligne vide toute la mémoire de l'appli
+  }
+
 }

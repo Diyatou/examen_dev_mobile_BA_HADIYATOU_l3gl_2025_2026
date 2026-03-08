@@ -15,12 +15,16 @@ class AuthProvider extends ChangeNotifier {
 
   //[span_4](start_span)// Initialisation : charger l'utilisateur depuis le stockage[span_4](end_span)
   Future<void> init() async {
-  _isLoading = true;
-  notifyListeners();
-  // Logique StorageService à venir...
+    _isLoading = true;
+    notifyListeners();
 
-  _isLoading = false;
-  notifyListeners();
+    // FORÇAGE ICI : On s'assure que l'utilisateur est bien vide au début
+    _currentUser = null;
+
+    // Plus tard, on ira chercher dans StorageService ici
+
+    _isLoading = false;
+    notifyListeners(); // C'est ce notify qui va dire au main.dart d'afficher le Login !
   }
 
   //[span_5](start_span)[span_6](start_span)// Connexion[span_5](end_span)[span_6](end_span)

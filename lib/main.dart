@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sunu_task/core/theme/app_theme.dart';
+import 'package:sunu_task/screens/auth/register_screen.dart';
 import 'package:sunu_task/screens/splash/splash_screen.dart';
 import 'package:sunu_task/services/storage_service.dart';
 
@@ -17,6 +18,7 @@ import 'package:sunu_task/screens/home/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageService.instance.init();
+  await StorageService.instance.clear();
 
   runApp(
     MultiProvider (
@@ -34,14 +36,14 @@ void main() async {
 class SunuTask extends StatelessWidget {
   const SunuTask({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SunuTask',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      // Le Consumer écoute les changements dans AppProvider
+      darkTheme: AppTheme.darkTheme,
+      // On réinstalle le "cerveau" de l'application ici
       home: Consumer<AppProvider>(
         builder: (context, app, _) {
           // 1. Si pas initialisé -> Splash
@@ -50,22 +52,22 @@ class SunuTask extends StatelessWidget {
           // 2. Si onboarding pas fait -> Onboarding
           if (!app.isOnboardingComplete) return const OnboardingScreen();
 
-          // 3. On regarde si l'utilisateur est connecté via AuthProvider
+          // 3. Sinon, on vérifie l'Auth
           return Consumer<AuthProvider>(
-              builder: (context, auth, _) {
-                // 1. Cette ligne va s'afficher dans l'onglet RUN en bas
-                print("* DEBUG : isAuthenticated = ${auth.isAuthenticated}");
-
-                // 2. Utilise cette structure simple
-                if (auth.isAuthenticated) {
-                  return const HomeScreen();
-                } else {
-                  return const LoginScreen();
-                }
-              }
+            builder: (context, auth, _) {
+              return auth.isAuthenticated
+                  ? const HomeScreen()
+                  : const LoginScreen();
+            },
           );
         },
       ),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegisterScreen(),
+        '/home': (context) => const HomeScreen(),
+      },
     );
   }
 }
+
