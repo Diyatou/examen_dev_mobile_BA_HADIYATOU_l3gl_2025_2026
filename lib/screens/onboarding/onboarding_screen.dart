@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sunu_task/core/constants/app_colors.dart';
 import 'package:sunu_task/core/constants/app_strings.dart';
 import 'package:sunu_task/models/onboardingItem.dart';
 import 'package:sunu_task/screens/home/home_screen.dart';
 import 'package:sunu_task/services/storage_service.dart';
+
+import '../../providers/app_provider.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -61,16 +64,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  Future<void> _completeOnboarding() async{
+  Future<void> _completeOnboarding() async {
+    // 1. On enregistre dans le téléphone que l'onboarding est fini
     await StorageService.instance.setOnboardingComplete(true);
-    
-    if(mounted){
-      Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen())
-      );
+
+    // 2. On prévient le Provider (très important pour le main.dart)
+    Provider.of<AppProvider>(context, listen: false).completeOnboarding();
+
+    if (mounted) {
+      // 3. On redirige vers le LOGIN selon la consigne 3.3
+      Navigator.pushReplacementNamed(context, '/login');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

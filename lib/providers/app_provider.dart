@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../services/storage_service.dart';
+
 class AppProvider extends ChangeNotifier {
   bool _isInitialized = false;
   bool _isOnboardingComplete = true; // Change à true pour tester l'onboarding
@@ -14,8 +16,13 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void completeInitialization() {
-    _isInitialized = true;
-    notifyListeners(); // C'est CE signal qui déclenche le changement dans le main
+  // Marque l'onboarding comme terminé
+  Future<void> completeOnboarding() async {
+    _isOnboardingComplete = true;
+
+    // On s'assure que le stockage local est aussi à jour
+    await StorageService.instance.setOnboardingComplete(true);
+
+    notifyListeners(); // Informe le main.dart pour mettre à jour l'affichage
   }
 }

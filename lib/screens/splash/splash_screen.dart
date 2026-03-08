@@ -9,6 +9,7 @@ import 'package:sunu_task/services/storage_service.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../providers/app_provider.dart';
+import '../auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -60,14 +61,18 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigateToNextScreen() {
     if (!mounted) return;
 
-    // On récupère l'AppProvider
-    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    // 1. On vérifie si l'onboarding a déjà été fait
+    final bool onboardingComplete = StorageService.instance.isOnboardingComplete;
 
-    // On lui dit que l'initialisation (et l'animation) est terminée
-    appProvider.completeInitialization();
-
-    // PLUS DE Navigator.push ICI !
-    // Le Consumer dans main.dart va détecter le changement et changer l'écran tout seul.
+    // 2. On navigue vers la bonne page
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => onboardingComplete
+            ? const LoginScreen() // Si fait -> Connexion
+            : const OnboardingScreen(), // Sinon -> Onboarding
+      ),
+    );
   }
   @override
   Widget build(BuildContext context) {

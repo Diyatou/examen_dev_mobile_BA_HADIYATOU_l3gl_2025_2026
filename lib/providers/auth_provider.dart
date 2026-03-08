@@ -28,18 +28,31 @@ class AuthProvider extends ChangeNotifier {
   }
 
   //[span_5](start_span)[span_6](start_span)// Connexion[span_5](end_span)[span_6](end_span)
+
   Future<bool> login(String email, String password) async {
-  _isLoading = true;
-  _error = null;
-  notifyListeners();
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    await Future.delayed(const Duration(seconds: 1));
 
-  //[span_7](start_span)// Logique attendue : Chercher l'user dans StorageService[span_7](end_span)
-  // Simulation pour l'instant :
-  await Future.delayed(const Duration(seconds: 1));
+    // Simulation de validation (on accepte n'importe quoi pour l'instant)
+    if (email.isNotEmpty && password.length >= 6) {
+      // On crée un utilisateur fictif pour "allumer" isAuthenticated
+      _currentUser = User(
+        id: '1',
+        name: 'Utilisateur Test',
+        email: email, password: '',
+      );
 
-  _isLoading = false;
-  notifyListeners();
-  return false; // Retourne true si trouvé
+      _isLoading = false;
+      notifyListeners();
+      return true; // LA CONNEXION RÉUSSIT !
+    } else {
+      _error = "Email ou mot de passe incorrect";
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   //[span_8](start_span)// Inscription[span_8](end_span)
