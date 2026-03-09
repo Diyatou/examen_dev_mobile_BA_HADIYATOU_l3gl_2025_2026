@@ -42,8 +42,8 @@ class User {
    return User(
        id: id ?? this.id,
        name: name ?? this.name,
-       email: email ?? this.name,
-       password: password ?? this.name,
+       email: email ?? this.email,
+       password: password ?? this.password,
        avatar: avatar ?? this.avatar,
        createdAt: createdAt ?? this.createdAt
    );
@@ -60,7 +60,8 @@ class User {
      'email': email,
      'password': password,
      'avatar': avatar,
-     'createdAt': createdAt
+     'createdAt': createdAt.toIso8601String(),
+
    };
  }
 
@@ -69,12 +70,14 @@ class User {
   */
  factory User.fromMap(Map<String, dynamic> map) {
    return User(
-       id: map['id'] as String,
-       name: map['name'] as String,
-       email: map['email'] as String,
-       password: map['password'] as String,
-       avatar: map['avatar'] as String,
-       createdAt: DateTime.parse(map['createdAt'] as String)
+     id: map['id']?.toString() ?? '', // Si null, on met une chaîne vide
+     name: map['name']?.toString() ?? 'Utilisateur',
+     email: map['email']?.toString() ?? '',
+     password: map['password']?.toString() ?? '',
+     avatar: map['avatar']?.toString(),
+     createdAt: map['createdAt'] != null
+         ? DateTime.parse(map['createdAt'])
+         : DateTime.now(),
    );
  }
 

@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/user.dart';
 
 /**
  * Pattern Singleton:
@@ -52,6 +56,35 @@ class StorageService {
 
   Future<void> clear() async {
     await _prefs?.clear(); // Cette ligne vide toute la mémoire de l'appli
+  }
+
+  // Dans lib/services/storage_service.dart
+
+// Sauvegarder les infos de l'utilisateur séparément
+  Future<void> saveUserData(String name, String email, String password) async {
+    await _prefs?.setString('user_name', name);
+    await _prefs?.setString('user_email', email);
+    await _prefs?.setString('user_password', password);
+  }
+
+// Récupérer uniquement l'email pour le test de connexion
+  String? getSavedEmail() => _prefs?.getString('user_email');
+  String? getSavedPassword() => _prefs?.getString('user_password');
+  String? getSavedName() => _prefs?.getString('user_name');
+
+  // Récupérer la liste de tous les inscrits
+  List<User> getUsers() {
+    final String? usersJson = _prefs?.getString('all_users');
+    if (usersJson == null) return [];
+
+    final List<dynamic> decodedList = jsonDecode(usersJson);
+    return decodedList.map((item) => User.fromMap(item)).toList();
+  }
+
+// 2. Sauvegarder la liste complète (après un register)
+  Future<void> saveUsers(List<User> users) async {
+    final String encodedData = jsonEncode(users.map((u) => u.toMap()).toList());
+    await _prefs?.setString('all_users', encodedData);
   }
 
 }
