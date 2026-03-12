@@ -1,35 +1,66 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/task.dart';
 
-class TaskProvider extends ChangeNotifier {
+class TaskProvider with ChangeNotifier {
   List<Task> _tasks = [];
-  bool _isLoading = false;
 
-  List<Task> get tasks {
-    // Tri : En cours > À faire > Terminé, puis Haute > Moyenne > Basse
-    List<Task> sortedTasks = List.from(_tasks);
-    sortedTasks.sort((a, b) {
-      int statusCompare = a.status.index.compareTo(b.status.index);
-      if (statusCompare != 0) return statusCompare;
-      return b.priority.index.compareTo(a.priority.index);
-    });
-    return sortedTasks;
+  List<Task> get tasks => _tasks;
+
+  // Filtrer les tâches d'un projet spécifique
+  List<Task> getTasksByProject(String projectId) {
+    return _tasks.where((t) => t.projectId == projectId).toList();
   }
 
-  bool get isLoading => _isLoading;
-
-  Future<void> loadTasks(String projectId) async {
-    _isLoading = true;
-    notifyListeners();
-    // TODO: Appel StorageService
-    _isLoading = false;
-    notifyListeners();
+  // Statistiques pour le Dashboard
+  int getCountByStatus(String status) {
+    return _tasks.where((t) => t.status == status).toList().length;
   }
 
-  Future<void> createTask(Task task) async {
+  // --- CRUD ---
+
+  Future<void> loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? tasksData = prefs.getString('tasks');
+    if (tasksData != null) {
+      final List<dynamic> decoded = jsonDecode(tasksData);
+      _tasks = decoded.map((item) => Task.fromJson(item)).toList();
+      notifyListeners();
+    }
+  }
+
+  Future<void> addTask(Task task) async {
     _tasks.add(task);
+    await _saveToPrefs();
     notifyListeners();
   }
 
+  Future<void> updateTask(Task updatedTask) async {
+    final index = _tasks.indexWhere((t) => t.id == updatedTask.id);
+    if (index != -1) {
+      _tasks[index] = updatedTask;
+      await _saveToPrefs();
+      notifyListeners();
+    }
+  }
 
+  Future<void> deleteTask(String id) async {
+    _tasks.removeWhere((t) => t.id == id);
+    await _saveToPrefs();
+    notifyListeners();
+  }
+
+  // Supprimer toutes les tâches d'un projet (quand on supprime le projet)
+  Future<void> deleteTasksByProject(String projectId) async {
+    _tasks.removeWhere((t) => t.projectId == projectId);
+    await _saveToPrefs();
+    notifyListeners();
+  }
+
+  Future<void> _saveToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_tasks.map((t) => t.toJson()).toList());
+    await prefs.setString('tasks', encoded);
+  }
 }

@@ -1,53 +1,47 @@
 import 'package:flutter/material.dart';
 
-enum TaskStatus { todo, inProgress, done }
-enum TaskPriority { low, medium, high }
-
 class Task {
   final String id;
   final String projectId;
-  final String title;
-  final String description;
-  final TaskStatus status;
-  final TaskPriority priority;
-  final DateTime? dueDate;
-  final DateTime createdAt;
+  final String userId;
+  String title;
+  String description;
+  String status; // 'À faire', 'En cours', 'Terminée'
+  String priority; // 'Haute', 'Moyenne', 'Basse'
+  DateTime dueDate;
 
   Task({
     required this.id,
     required this.projectId,
+    required this.userId,
     required this.title,
-    this.description = '',
-    this.status = TaskStatus.todo,
-    this.priority = TaskPriority.medium,
-    this.dueDate,
-    required this.createdAt,
+    required this.description,
+    required this.status,
+    required this.priority,
+    required this.dueDate,
   });
 
-  // Conversion pour le stockage (SharedPreferences)
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'projectId': projectId,
-      'title': title,
-      'description': description,
-      'status': status.index,
-      'priority': priority.index,
-      'dueDate': dueDate?.toIso8601String(),
-      'createdAt': createdAt.toIso8601String(),
-    };
-  }
-
-  factory Task.fromMap(Map<String, dynamic> map) {
+  factory Task.fromJson(Map<String, dynamic> json) {
     return Task(
-      id: map['id'],
-      projectId: map['projectId'],
-      title: map['title'],
-      description: map['description'] ?? '',
-      status: TaskStatus.values[map['status']],
-      priority: TaskPriority.values[map['priority']],
-      dueDate: map['dueDate'] != null ? DateTime.parse(map['dueDate']) : null,
-      createdAt: DateTime.parse(map['createdAt']),
+      id: json['id'],
+      projectId: json['projectId'],
+      userId: json['userId'],
+      title: json['title'],
+      description: json['description'],
+      status: json['status'],
+      priority: json['priority'],
+      dueDate: DateTime.parse(json['dueDate']),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'projectId': projectId,
+    'userId': userId,
+    'title': title,
+    'description': description,
+    'status': status,
+    'priority': priority,
+    'dueDate': dueDate.toIso8601String(),
+  };
 }
