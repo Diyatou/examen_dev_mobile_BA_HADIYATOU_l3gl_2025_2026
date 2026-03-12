@@ -1,50 +1,51 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/project.dart';
 
-class ProjectProvider extends ChangeNotifier{
+class ProjectProvider with ChangeNotifier {
   List<Project> _projects = [];
-  Project? _selectedProject;
-  bool _isLoading = false;
-
-  // Getters publics
   List<Project> get projects => _projects;
-  Project? get selectedProject => _selectedProject;
-  int get projectCount => _projects.length;
-  bool get isLoading => _isLoading;
 
-  // Méthodes CRUD demandées
-  Future<void> loadProjects(String userId) async {
-    _isLoading = true;
-    notifyListeners();
-    // TODO: Récupérer depuis StorageService
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> createProject(Project project) async {
+  // 1. CREATE : Ajouter un projet
+  Future<void> addProject(Project project) async {
     _projects.add(project);
-    // TODO: Sauvegarder dans StorageService
-    notifyListeners();
+    await _saveToPrefs();
+    notifyListeners(); // Prévient l'UI de se mettre à jour
   }
 
-  Future<void> updateProject(Project project) async {
-    final index = _projects.indexWhere((p) => p.id == project.id);
-    if (index != -1) {
-      _projects[index] = project;
+  // 2. READ : Charger depuis SharedPreferences
+  Future<void> loadProjects() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? projectsData = prefs.getString('projects');
+    if (projectsData != null) {
+      final List<dynamic> decoded = jsonDecode(projectsData);
+      _projects = decoded.map((item) => Project.fromJson(item)).toList();
       notifyListeners();
     }
   }
 
-  Future<void> deleteProject(String projectId) async {
-    _projects.removeWhere((p) => p.id == projectId);
+  // 3. UPDATE : Modifier un projet
+  Future<void> updateProject(Project updatedProject) async {
+    final index = _projects.indexWhere((p) => p.id == updatedProject.id);
+    if (index != -1) {
+      _projects[index] = updatedProject;
+      await _saveToPrefs();
+      notifyListeners();
+    }
+  }
+
+  // 4. DELETE : Supprimer un projet
+  Future<void> deleteProject(String id) async {
+    _projects.removeWhere((p) => p.id == id);
+    await _saveToPrefs();
     notifyListeners();
   }
 
-  void selectProject(Project? project) {
-    _selectedProject = project;
-    notifyListeners();
+  // Sauvegarde interne
+  Future<void> _saveToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String encoded = jsonEncode(_projects.map((p) => p.toJson()).toList());
+    await prefs.setString('projects', encoded);
   }
-
-
 }

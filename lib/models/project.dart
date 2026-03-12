@@ -6,38 +6,32 @@ class Project {
   final String description;
   final Color color;
   final DateTime createdAt;
-  final String userId;
 
   Project({
     required this.id,
     required this.name,
-    this.description = '',
+    required this.description,
     required this.color,
     required this.createdAt,
-    required this.userId,
   });
 
-  // Pour transformer le projet en format lisible par SharedPreferences (JSON)
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'color': color.value, // On stocke la valeur entière de la couleur
-      'createdAt': createdAt.toIso8601String(),
-      'userId': userId,
-    };
-  }
-
-  // Pour créer un objet Project à partir des données stockées
-  factory Project.fromMap(Map<String, dynamic> map) {
+  // Pour transformer le JSON en Objet Project
+  factory Project.fromJson(Map<String, dynamic> json) {
     return Project(
-      id: map['id'],
-      name: map['name'],
-      description: map['description'] ?? '',
-      color: Color(map['color']),
-      createdAt: DateTime.parse(map['createdAt']),
-      userId: map['userId'],
+      id: json['id'],
+      name: json['name'],
+      description: json['description'],
+      color: Color(json['color']),
+      createdAt: DateTime.parse(json['createdAt']),
     );
   }
+
+  // Pour transformer l'Objet Project en JSON (pour SharedPreferences)
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'description': description,
+    'color': color.value,
+    'createdAt': createdAt.toIso8601String(),
+  };
 }
