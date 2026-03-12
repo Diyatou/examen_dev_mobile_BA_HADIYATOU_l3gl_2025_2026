@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flintl/intl.dart'; // Pour formater la date d'inscription
 import '../../../providers/auth_provider.dart';
 
 class ProfileTab extends StatelessWidget {
@@ -12,8 +11,9 @@ class ProfileTab extends StatelessWidget {
     final user = authProvider.currentUser;
 
     // Formater la date d'inscription (ex: 12 mars 2026)
+    // Alternative sans le package intl
     final String registrationDate = user?.createdAt != null
-        ? DateFormat('dd MMMM yyyy', 'fr_FR').format(user!.createdAt)
+        ? "${user!.createdAt.day}/${user!.createdAt.month}/${user!.createdAt.year}"
         : "Date inconnue";
 
     return SingleChildScrollView(
