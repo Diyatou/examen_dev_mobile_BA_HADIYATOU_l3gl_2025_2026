@@ -18,7 +18,7 @@ import 'package:sunu_task/screens/home/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageService.instance.init();
-  //await StorageService.instance.clear();
+  await StorageService.instance.clear();
 
   runApp(
     MultiProvider (
