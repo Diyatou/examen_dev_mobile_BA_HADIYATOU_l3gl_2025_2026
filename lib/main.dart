@@ -18,7 +18,7 @@ import 'package:sunu_task/screens/home/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageService.instance.init();
-  await StorageService.instance.clear();
+  //await StorageService.instance.clear();
 
   runApp(
     MultiProvider (
@@ -27,6 +27,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
         ChangeNotifierProvider(create: (_) => ProjectProvider()),
         ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => ProjectProvider()..loadProjects()),
+        ChangeNotifierProvider(create: (_) => TaskProvider()..loadTasks()),
+
       ],
       child: const SunuTask(),
     ),

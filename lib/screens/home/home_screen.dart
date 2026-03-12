@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sunu_task/screens/home/tabs/projects_tab.dart';
 import '../../providers/auth_provider.dart';
+import '../projects/project_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,9 +15,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   // Liste des pages pour l'IndexedStack
+  // Dans HomeScreen.dart
   final List<Widget> _pages = [
-    const Center(child: Text("Dashboard")), // On créera des fichiers séparés plus tard
-    const Center(child: Text("Projets")),
+    const Center(child: Text("Dashboard")), // À remplacer par DashboardTab() plus tard
+    const ProjectsTab(), // REMPLACE LE TEXTE PAR TON WIDGET ICI
     const Center(child: Text("Tâches")),
     const Center(child: Text("Profil")),
   ];
@@ -98,7 +101,13 @@ class _HomeScreenState extends State<HomeScreen> {
       // 3. FLOATING ACTION BUTTON (Visible uniquement sur Dashboard et Projets)
       floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1)
           ? FloatingActionButton(
-        onPressed: () { /* Action pour nouveau projet */ },
+        onPressed: () {
+          // C'EST ICI QU'ON AJOUTE LA NAVIGATION
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
+          );
+        },
         child: const Icon(Icons.add),
       )
           : null,

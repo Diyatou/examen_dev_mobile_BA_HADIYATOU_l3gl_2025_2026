@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// import '../../../providers/project_provider.dart';
+
+import '../../../models/project.dart';
+import '../../../providers/project_provider.dart';
+import '../../projects/project_form_screen.dart';
+
 
 class ProjectsTab extends StatelessWidget {
   const ProjectsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Simulation d'une liste de projets (à remplacer par ton ProjectProvider plus tard)
-    final List<dynamic> projects = [];
+    // ON LIT LES PROJETS DEPUIS LE PROVIDER ICI
+    final projectProvider = Provider.of<ProjectProvider>(context);
+    final projects = projectProvider.projects;
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: projects.isEmpty
           ? _buildEmptyState(context)
-          : _buildProjectList(projects),
+          : _buildProjectList(projects), // Utilise maintenant la vraie liste
     );
   }
 
@@ -37,8 +42,15 @@ class ProjectsTab extends StatelessWidget {
             style: TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 24),
+          // Modifie le onPressed de ton bouton dans _buildEmptyState
           ElevatedButton.icon(
-            onPressed: () => _showCreateProjectDialog(context),
+            onPressed: () {
+              // On va directement au formulaire au lieu d'ouvrir un dialogue inutile
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
+              );
+            },
             icon: const Icon(Icons.add),
             label: const Text("Créer un projet"),
           ),
@@ -48,19 +60,23 @@ class ProjectsTab extends StatelessWidget {
   }
 
   // 2. Liste des projets
-  Widget _buildProjectList(List<dynamic> projects) {
+  Widget _buildProjectList(List<Project> projects) {
     return ListView.builder(
       itemCount: projects.length,
       itemBuilder: (context, index) {
+        final project = projects[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
-            leading: const Icon(Icons.folder, color: Colors.blue),
-            title: Text("Nom du Projet $index"),
-            subtitle: const Text("3 tâches en cours"),
+            leading: CircleAvatar(
+              backgroundColor: project.color, // Utilise la couleur choisie
+              child: const Icon(Icons.folder, color: Colors.white),
+            ),
+            title: Text(project.name),
+            subtitle: Text(project.description.isEmpty ? "Pas de description" : project.description),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // Navigation vers les détails du projet
+              // TODO: Navigation vers ProjectDetailScreen(project: project)
             },
           ),
         );
@@ -100,8 +116,12 @@ class ProjectsTab extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              // Logique de sauvegarde via ProjectProvider
-              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProjectFormScreen(),
+                ),
+              );
             },
             child: const Text("Créer"),
           ),

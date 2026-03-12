@@ -8,12 +8,12 @@ class TaskProvider with ChangeNotifier {
 
   List<Task> get tasks => _tasks;
 
-  // Filtrer les tâches d'un projet spécifique
+
   List<Task> getTasksByProject(String projectId) {
     return _tasks.where((t) => t.projectId == projectId).toList();
   }
 
-  // Statistiques pour le Dashboard
+
   int getCountByStatus(String status) {
     return _tasks.where((t) => t.status == status).toList().length;
   }

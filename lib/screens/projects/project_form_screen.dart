@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; // Import indispensable
 import 'package:uuid/uuid.dart';
-// import '../../models/project.dart'; // Assure-toi d'avoir ce modèle
+import '../../models/project.dart';
+import '../../providers/project_provider.dart';
 
 class ProjectFormScreen extends StatefulWidget {
-  final dynamic project; // Remplace dynamic par Project? quand ton modèle sera prêt
+  final Project? project; // Utilise maintenant le vrai modèle
 
   const ProjectFormScreen({super.key, this.project});
 
@@ -13,15 +15,10 @@ class ProjectFormScreen extends StatefulWidget {
 
 class _ProjectFormScreenState extends State<ProjectFormScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  // Contrôleurs pour les champs
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
-
-  // État du sélecteur de couleur
   late Color _selectedColor;
 
-  // Liste des 8 couleurs prédéfinies
   final List<Color> _predefinedColors = [
     Colors.blue, Colors.red, Colors.green, Colors.orange,
     Colors.purple, Colors.pink, Colors.teal, Colors.indigo,
@@ -30,7 +27,6 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
   @override
   void initState() {
     super.initState();
-    // Mode modification : on pré-remplit les champs
     _nameController = TextEditingController(text: widget.project?.name ?? "");
     _descriptionController = TextEditingController(text: widget.project?.description ?? "");
     _selectedColor = widget.project?.color ?? _predefinedColors[0];
@@ -41,6 +37,39 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  // --- LA LOGIQUE DE SAUVEGARDE ---
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
+
+      if (widget.project == null) {
+        // MODE CRÉATION
+        final newProject = Project(
+          id: const Uuid().v4(), // Génère un ID unique
+          name: _nameController.text,
+          description: _descriptionController.text,
+          color: _selectedColor,
+          createdAt: DateTime.now(),
+        );
+        await projectProvider.addProject(newProject);
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Projet créé !")));
+      } else {
+        // MODE MODIFICATION
+        final updatedProject = Project(
+          id: widget.project!.id, // On garde le même ID
+          name: _nameController.text,
+          description: _descriptionController.text,
+          color: _selectedColor,
+          createdAt: widget.project!.createdAt,
+        );
+        await projectProvider.updateProject(updatedProject);
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Projet mis à jour !")));
+      }
+
+      if (mounted) Navigator.pop(context);
+    }
   }
 
   @override
@@ -58,17 +87,18 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Aperçu en temps réel
               const Text("Aperçu :", style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               _buildProjectPreview(),
               const SizedBox(height: 24),
 
-              // 2. Champ Nom (Obligatoire, min 3 car.)
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: "Nom du projet *"),
-                onChanged: (value) => setState(() {}), // Pour mettre à jour l'aperçu
+                decoration: const InputDecoration(
+                  labelText: "Nom du projet *",
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) => setState(() {}),
                 validator: (value) {
                   if (value == null || value.isEmpty || value.length < 3) {
                     return "Le nom doit contenir au moins 3 caractères";
@@ -78,16 +108,17 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
               ),
               const SizedBox(height: 16),
 
-              // 3. Champ Description (Multiligne)
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: "Description (optionnel)"),
+                decoration: const InputDecoration(
+                  labelText: "Description (optionnel)",
+                  border: OutlineInputBorder(),
+                ),
                 maxLines: 3,
                 onChanged: (value) => setState(() {}),
               ),
               const SizedBox(height: 24),
 
-              // 4. Sélecteur de couleur (Wrap avec 8 cercles)
               const Text("Couleur du projet", style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               Wrap(
@@ -98,12 +129,16 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
 
               const SizedBox(height: 40),
 
-              // 5. Bouton d'action dynamique
               SizedBox(
                 width: double.infinity,
+                height: 50,
                 child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _selectedColor,
+                    foregroundColor: Colors.white,
+                  ),
                   onPressed: _submitForm,
-                  child: Text(isEditing ? "Modifier" : "Créer"),
+                  child: Text(isEditing ? "ENREGISTRER LES MODIFICATIONS" : "CRÉER LE PROJET"),
                 ),
               ),
             ],
@@ -113,44 +148,31 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
     );
   }
 
-  // Widget pour un cercle de couleur
   Widget _buildColorCircle(Color color) {
     bool isSelected = _selectedColor == color;
     return GestureDetector(
       onTap: () => setState(() => _selectedColor = color),
       child: Container(
-        width: 40,
-        height: 40,
+        width: 45,
+        height: 45,
         decoration: BoxDecoration(
           color: color,
           shape: BoxShape.circle,
           border: isSelected ? Border.all(color: Colors.black, width: 3) : null,
-          boxShadow: [
-            if (isSelected) BoxShadow(color: color.withOpacity(0.4), blurRadius: 8, spreadRadius: 2)
-          ],
         ),
         child: isSelected ? const Icon(Icons.check, color: Colors.white) : null,
       ),
     );
   }
 
-  // Widget d'aperçu de la ProjectCard
   Widget _buildProjectPreview() {
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
       child: ListTile(
         leading: CircleAvatar(backgroundColor: _selectedColor, child: const Icon(Icons.folder, color: Colors.white)),
         title: Text(_nameController.text.isEmpty ? "Nom du projet" : _nameController.text),
         subtitle: Text(_descriptionController.text.isEmpty ? "Pas de description" : _descriptionController.text),
       ),
     );
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // Logique pour sauvegarder via le ProjectProvider
-      Navigator.pop(context);
-    }
   }
 }
