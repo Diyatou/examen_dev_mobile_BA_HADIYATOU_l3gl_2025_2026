@@ -27,11 +27,13 @@ class ProjectProvider with ChangeNotifier {
 
   // 3. UPDATE : Modifier un projet
   Future<void> updateProject(Project updatedProject) async {
+    // On cherche la position du projet qui a le même ID
     final index = _projects.indexWhere((p) => p.id == updatedProject.id);
+
     if (index != -1) {
-      _projects[index] = updatedProject;
-      await _saveToPrefs();
-      notifyListeners();
+      _projects[index] = updatedProject; // On remplace l'ancien par le nouveau
+      await _saveToPrefs(); // On sauvegarde dans le téléphone
+      notifyListeners();    // TRÈS IMPORTANT : Dit à l'interface de se redessiner
     }
   }
 

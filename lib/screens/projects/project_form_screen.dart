@@ -40,35 +40,35 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
   }
 
   // --- LA LOGIQUE DE SAUVEGARDE ---
-  void _submitForm() async {
+  void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
 
       if (widget.project == null) {
-        // MODE CRÉATION
+        // --- CAS CRÉATION ---
         final newProject = Project(
-          id: const Uuid().v4(), // Génère un ID unique
+          id: DateTime.now().toString(),
           name: _nameController.text,
           description: _descriptionController.text,
           color: _selectedColor,
           createdAt: DateTime.now(),
         );
-        await projectProvider.addProject(newProject);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Projet créé !")));
+        projectProvider.addProject(newProject);
       } else {
-        // MODE MODIFICATION
+        // --- CAS MODIFICATION ---
+        // On crée un nouvel objet avec le MÊME ID que l'ancien
         final updatedProject = Project(
-          id: widget.project!.id, // On garde le même ID
+          id: widget.project!.id,
           name: _nameController.text,
           description: _descriptionController.text,
           color: _selectedColor,
-          createdAt: widget.project!.createdAt,
+          createdAt: widget.project!.createdAt, // On garde la date d'origine
         );
-        await projectProvider.updateProject(updatedProject);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Projet mis à jour !")));
+
+        projectProvider.updateProject(updatedProject);
       }
 
-      if (mounted) Navigator.pop(context);
+      Navigator.pop(context); // Retour à l'écran précédent
     }
   }
 

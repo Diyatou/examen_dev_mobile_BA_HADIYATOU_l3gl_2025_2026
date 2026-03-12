@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../models/project.dart';
 import '../../../providers/project_provider.dart';
+import '../../projects/project_detail_screen.dart';
 import '../../projects/project_form_screen.dart';
 
 
@@ -69,14 +70,19 @@ class ProjectsTab extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             leading: CircleAvatar(
-              backgroundColor: project.color, // Utilise la couleur choisie
+              backgroundColor: project.color,
               child: const Icon(Icons.folder, color: Colors.white),
             ),
             title: Text(project.name),
             subtitle: Text(project.description.isEmpty ? "Pas de description" : project.description),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Navigation vers ProjectDetailScreen(project: project)
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProjectDetailScreen(project: project),
+                ),
+              );
             },
           ),
         );
