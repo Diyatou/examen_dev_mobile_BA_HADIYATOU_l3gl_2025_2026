@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../providers/project_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../models/project.dart';
+import '../tasks/task_form_screen.dart';
 import 'project_form_screen.dart';
 
 class ProjectDetailScreen extends StatelessWidget {
@@ -79,7 +80,12 @@ class ProjectDetailScreen extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         backgroundColor: currentProject.color,
         onPressed: () {
-          // Navigation TaskFormScreen(projectId: currentProject.id)
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TaskFormScreen(projectId: currentProject.id),
+            ),
+          );
         },
         child: const Icon(Icons.add_task),
       ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sunu_task/screens/home/tabs/projects_tab.dart';
 import '../../providers/auth_provider.dart';
 import '../projects/project_form_screen.dart';
+import '../tasks/task_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -99,14 +100,24 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
 
       // 3. FLOATING ACTION BUTTON (Visible uniquement sur Dashboard et Projets)
-      floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1)
+      // 3. FLOATING ACTION BUTTON (Maintenant visible sur Dashboard, Projets ET Tâches)
+      floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1 || _selectedIndex == 2)
           ? FloatingActionButton(
         onPressed: () {
-          // C'EST ICI QU'ON AJOUTE LA NAVIGATION
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
-          );
+          if (_selectedIndex == 1 || _selectedIndex == 0) {
+            // Si on est sur Dashboard ou Projets -> Formulaire Projet
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProjectFormScreen()),
+            );
+          } else if (_selectedIndex == 2) {
+            // Si on est sur l'onglet Tâches -> Formulaire Tâche
+            // Note : Ici on ne passe pas de projectId car on est sur la liste globale
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const TaskFormScreen(projectId: '',)),
+            );
+          }
         },
         child: const Icon(Icons.add),
       )

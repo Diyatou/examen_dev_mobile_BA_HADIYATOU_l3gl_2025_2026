@@ -40,7 +40,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
             icon: const Icon(Icons.edit),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => TaskFormScreen(task: widget.task)),
+              MaterialPageRoute(builder: (_) => TaskFormScreen(task: widget.task, projectId: '',)),
             ),
           ),
           IconButton(

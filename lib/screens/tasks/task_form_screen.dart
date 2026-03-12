@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart'; // Importe tes couleurs
 class TaskFormScreen extends StatefulWidget {
   final dynamic task; // Remplace par Task? task plus tard
 
-  const TaskFormScreen({super.key, this.task});
+  const TaskFormScreen({super.key, this.task, required String projectId});
 
   @override
   State<TaskFormScreen> createState() => _TaskFormScreenState();
