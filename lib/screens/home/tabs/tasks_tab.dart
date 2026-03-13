@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../../core/constants/app_colors.dart';
+import '../../../providers/project_provider.dart';
+import '../../../providers/task_provider.dart';
 // import '../../../providers/task_provider.dart';
 
 class TasksTab extends StatefulWidget {
@@ -15,21 +19,29 @@ class _TasksTabState extends State<TasksTab> {
 
   @override
   Widget build(BuildContext context) {
-    // Simulation d'une liste (à remplacer par taskProvider.tasks)
-    final List<dynamic> tasks = [];
+    // On récupère TOUTES les tâches de TOUS les projets
+    final taskProvider = Provider.of<TaskProvider>(context);
+    final allTasks = taskProvider.tasks; // Supposons que tu as un getter 'tasks'
 
-    return Column(
-      children: [
-        // 1. Zone de filtrage
-        _buildFilters(),
+    return allTasks.isEmpty
+        ? _buildEmptyState()
+        : ListView.builder(
+      itemCount: allTasks.length,
+        itemBuilder: (context, index) {
+          final task = allTasks[index];
 
-        // 2. Liste ou État vide
-        Expanded(
-          child: tasks.isEmpty
-              ? _buildEmptyState()
-              : _buildTasksList(tasks),
-        ),
-      ],
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: ListTile(
+              title: Text(task.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text("Échéance : ${task.dueDate.day}/${task.dueDate.month}"),
+              trailing: _buildStatusBadge(task.status), // Ton superbe badge dynamique !
+              onTap: () {
+                // Optionnel : Ouvrir les détails de la tâche ou modifier son statut
+              },
+            ),
+          );
+        }
     );
   }
 
@@ -103,6 +115,42 @@ class _TasksTabState extends State<TasksTab> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color color;
+
+    // On définit la couleur selon le statut
+    switch (status) {
+      case 'À faire':
+        color = AppColors.statusTodo; // Gris/Bleu
+        break;
+      case 'En cours':
+        color = AppColors.statusInProgress; // Orange/Jaune
+        break;
+      case 'Terminée':
+        color = AppColors.statusDone; // Vert
+        break;
+      default:
+        color = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1), // Fond léger
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }

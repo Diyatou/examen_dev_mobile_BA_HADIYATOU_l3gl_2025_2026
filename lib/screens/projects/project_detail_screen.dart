@@ -31,6 +31,10 @@ class ProjectDetailScreen extends StatelessWidget {
     int inProgressCount = projectTasks.where((t) => t.status == "En cours").length;
     int doneCount = projectTasks.where((t) => t.status == "Terminée").length;
 
+    print("DEBUG: ID Projet actuel = ${currentProject.id}");
+    print("DEBUG: Nombre de tâches filtrées = ${projectTasks.length}");
+    print("DEBUG: Nombre total de tâches dans le provider = ${taskProvider.tasks.length}");
+
     return Scaffold(
       appBar: AppBar(
         // ON UTILISE currentProject PARTOUT MAINTENANT
@@ -71,6 +75,15 @@ class ProjectDetailScreen extends StatelessWidget {
                   const Text("Liste des tâches",
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   // TODO: Liste des tâches
+                  const SizedBox(height: 12),
+                  ...projectTasks.map((task) => Card(
+                    child: ListTile(
+                      leading: Icon(Icons.circle, color: _getStatusColor(task.status), size: 12),
+                      title: Text(task.title),
+                      subtitle: Text(task.priority),
+                      trailing: Text("${task.dueDate.day}/${task.dueDate.month}"),
+                    ),
+                  )).toList(),
                 ],
               ),
             ),
@@ -78,8 +91,9 @@ class ProjectDetailScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: currentProject.color,
+        backgroundColor: currentProject.color, // On utilise la couleur du projet
         onPressed: () {
+          // On navigue vers le formulaire en PASSANT L'ID du projet actuel
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -167,5 +181,18 @@ class ProjectDetailScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'À faire':
+        return AppColors.statusTodo;      // Assure-toi que c'est défini dans AppColors
+      case 'En cours':
+        return AppColors.statusInProgress;
+      case 'Terminée':
+        return AppColors.statusDone;
+      default:
+        return Colors.grey;               // Couleur de secours
+    }
   }
 }

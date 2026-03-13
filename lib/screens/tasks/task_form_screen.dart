@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart'; // Importe tes couleurs
+import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart'; // N'oublie pas d'ajouter uuid dans ton pubspec.yaml
+import '../../core/constants/app_colors.dart';
+import '../../models/task.dart';
+import '../../providers/task_provider.dart';
 
 class TaskFormScreen extends StatefulWidget {
-  final dynamic task; // Remplace par Task? task plus tard
+  final Task? task; // Type Task? pour plus de clarté
+  final String projectId;
 
-  const TaskFormScreen({super.key, this.task, required String projectId});
+  const TaskFormScreen({super.key, this.task, required this.projectId});
 
   @override
   State<TaskFormScreen> createState() => _TaskFormScreenState();
@@ -24,14 +29,20 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   void initState() {
     super.initState();
     bool isEditing = widget.task != null;
-    _titleController = TextEditingController(text: isEditing ? widget.task.title : "");
-    _descController = TextEditingController(text: isEditing ? widget.task.description : "");
-    _selectedStatus = isEditing ? widget.task.status : "À faire";
-    _selectedPriority = isEditing ? widget.task.priority : "Moyenne";
-    _dueDate = isEditing ? widget.task.dueDate : DateTime.now();
+    _titleController = TextEditingController(text: isEditing ? widget.task!.title : "");
+    _descController = TextEditingController(text: isEditing ? widget.task!.description : "");
+    _selectedStatus = isEditing ? widget.task!.status : "À faire";
+    _selectedPriority = isEditing ? widget.task!.priority : "Moyenne";
+    _dueDate = isEditing ? widget.task!.dueDate : DateTime.now();
   }
 
-  // Fonction pour ouvrir le sélecteur de date
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descController.dispose();
+    super.dispose();
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -51,13 +62,6 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? "Modifier la tâche" : "Nouvelle tâche"),
-        actions: [
-          if (isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => _showDeleteConfirmation(),
-            ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -66,22 +70,28 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Titre et Description
+              // 1. Champs de texte
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: "Titre de la tâche *"),
+                decoration: const InputDecoration(
+                  labelText: "Titre de la tâche *",
+                  border: OutlineInputBorder(),
+                ),
                 validator: (v) => v!.isEmpty ? "Le titre est obligatoire" : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _descController,
-                decoration: const InputDecoration(labelText: "Description"),
+                decoration: const InputDecoration(
+                  labelText: "Description",
+                  border: OutlineInputBorder(),
+                ),
                 maxLines: 3,
               ),
               const SizedBox(height: 24),
 
-              // 2. Sélecteur de Statut (Animé)
-              const Text("Statut", style: TextStyle(fontWeight: FontWeight.bold)),
+              // 2. Sélecteur de Statut
+              const Text("Statut", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -92,8 +102,8 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
               ),
               const SizedBox(height: 24),
 
-              // 3. Sélecteur de Priorité (Animé)
-              const Text("Priorité", style: TextStyle(fontWeight: FontWeight.bold)),
+              // 3. Sélecteur de Priorité
+              const Text("Priorité", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 12),
               Row(
                 children: [
@@ -105,22 +115,57 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
               const SizedBox(height: 24),
 
               // 4. Date d'échéance
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.calendar_today),
-                title: const Text("Date d'échéance"),
-                subtitle: Text(_dueDate == null ? "Non définie" : "${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}"),
-                trailing: TextButton(onPressed: () => _selectDate(context), child: const Text("Choisir")),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.calendar_today, color: Colors.blue),
+                  title: const Text("Date d'échéance"),
+                  subtitle: Text("${_dueDate!.day}/${_dueDate!.month}/${_dueDate!.year}"),
+                  trailing: TextButton(
+                    onPressed: () => _selectDate(context),
+                    child: const Text("Choisir"),
+                  ),
+                ),
               ),
-
               const SizedBox(height: 40),
 
-              // 5. Bouton Enregistrer
+              // 5. Bouton Enregistrer (UNIQUE)
               SizedBox(
                 width: double.infinity,
+                height: 50,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(isEditing ? "Enregistrer les modifications" : "Créer la tâche"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      final taskProvider = Provider.of<TaskProvider>(context, listen: false);
+
+                      if (!isEditing) {
+                        // CRÉATION
+                        final newTask = Task(
+                          id: const Uuid().v4(),
+                          projectId: widget.projectId,
+                          userId: 'user_1', // Temporaire
+                          title: _titleController.text,
+                          description: _descController.text,
+                          status: _selectedStatus,
+                          priority: _selectedPriority,
+                          dueDate: _dueDate!,
+                        );
+                        taskProvider.addTask(newTask);
+                      } else {
+                        // ÉDITION (Optionnel pour l'instant)
+                        // logic for update...
+                      }
+
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text(
+                    isEditing ? "ENREGISTRER LES MODIFICATIONS" : "CRÉER LA TÂCHE",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -130,7 +175,6 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     );
   }
 
-  // --- COMPOSANT ANIMÉ POUR SÉLECTEURS ---
   Widget _buildAnimatedSelectable(String label, Color color, {required bool isStatus}) {
     bool isSelected = isStatus ? _selectedStatus == label : _selectedPriority == label;
 
@@ -152,28 +196,11 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
               style: TextStyle(
                 color: isSelected ? Colors.white : color,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: 11,
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showDeleteConfirmation() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Supprimer la tâche ?"),
-        content: const Text("Voulez-vous vraiment supprimer cette tâche ?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
-          TextButton(onPressed: () {
-            Navigator.pop(context); // Ferme dialog
-            Navigator.pop(context); // Revient en arrière
-          }, child: const Text("Supprimer", style: TextStyle(color: Colors.red))),
-        ],
       ),
     );
   }

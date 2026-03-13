@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: _pages,
       ),
 
-      // 3. FLOATING ACTION BUTTON (Visible uniquement sur Dashboard et Projets)
+
       // 3. FLOATING ACTION BUTTON (Maintenant visible sur Dashboard, Projets ET Tâches)
       floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1 || _selectedIndex == 2)
           ? FloatingActionButton(

@@ -10,11 +10,14 @@ class TaskProvider with ChangeNotifier {
   List<Task> getTasksByProject(String projectId) {
     return _tasks.where((task) => task.projectId == projectId).toList();
   }
+  // Permet de récupérer la liste complète des tâches
+  List<Task> get tasks => [..._tasks];
 
   // Ajouter une tâche
   void addTask(Task task) {
     _tasks.add(task);
-    notifyListeners(); // Pour mettre à jour les statistiques instantanément
+    _saveToPrefs();
+    notifyListeners();
   }
 
   // Supprimer une tâche
@@ -42,21 +45,12 @@ class TaskProvider with ChangeNotifier {
 
   Future<void> _saveToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
-
-    // On transforme la liste d'objets Task en une liste de Maps (JSON)
     final String encodedData = jsonEncode(
-      _tasks.map((task) => {
-        'id': task.id,
-        'projectId': task.projectId,
-        'title': task.title,
-        'description': task.description,
-        'status': task.status,
-        'dueDate': task.dueDate.toIso8601String(),
-      }).toList(),
+      _tasks.map((task) => task.toJson()).toList(), // Utilise ton toJson() c'est plus simple !
     );
-
     await prefs.setString('tasks_data', encodedData);
   }
+
   // Supprimer toutes les tâches d'un projet spécifique
   void deleteTasksByProject(String projectId) {
     // On ne garde que les tâches qui n'appartiennent PAS à ce projet
@@ -72,14 +66,7 @@ class TaskProvider with ChangeNotifier {
 
     if (tasksString != null) {
       final List<dynamic> decodedData = jsonDecode(tasksString);
-      _tasks = decodedData.map((item) => Task(
-        id: item['id'],
-        projectId: item['projectId'],
-        title: item['title'],
-        description: item['description'],
-        status: item['status'],
-        dueDate: DateTime.parse(item['dueDate']), userId: '', priority: '',
-      )).toList();
+      _tasks = decodedData.map((item) => Task.fromJson(item)).toList(); // Utilise Task.fromJson
       notifyListeners();
     }
   }
