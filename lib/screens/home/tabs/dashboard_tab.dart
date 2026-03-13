@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/project_provider.dart';
 import '../../../providers/task_provider.dart';
 
+
 class DashboardTab extends StatelessWidget {
   const DashboardTab({super.key});
 
-  // 1. Logique du message de bienvenue selon l'heure
+  // Logique pour le message de bienvenue selon l'heure
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return "Bonjour";
@@ -18,104 +18,133 @@ class DashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // On écoute l'AuthProvider pour le nom de l'utilisateur
-    final authProvider = context.watch<AuthProvider>();
-    final userName = authProvider.currentUser?.name ?? "Utilisateur";
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.currentUser;
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        // Logique pour rafraîchir tes données (appel API ou Storage)
-        await Future.delayed(const Duration(seconds: 1));
-      },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Message de bienvenue
-            Text(
-              "${_getGreeting()}, $userName 👋",
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+    // On utilise ListenableBuilder pour écouter les changements de données
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        Provider.of<ProjectProvider>(context, listen: false),
+        Provider.of<TaskProvider>(context, listen: false),
+      ]),
+      builder: (context, _) {
+        final projectProvider = Provider.of<ProjectProvider>(context);
+        final taskProvider = Provider.of<TaskProvider>(context);
+
+        // Calcul des statistiques des tâches
+
+        final todoCount = taskProvider.tasks.where((t) =>
+        t.status == 'À faire' || t.status == 'Todo').length;
+
+        final inProgressCount = taskProvider.tasks.where((t) =>
+        t.status == 'En cours' || t.status == 'In Progress').length;
+
+        final doneCount = taskProvider.tasks.where((t) =>
+        t.status == 'Terminée' || t.status == 'Done').length;
+        return Scaffold(
+          body: RefreshIndicator(
+            onRefresh: () async {
+              // Action de rafraîchissement
+              await projectProvider.loadProjects();
+              await taskProvider.loadTasks();
+            },
+            child: CustomScrollView(
+              slivers: [
+                // --- BARRE DE BIENVENUE ---
+                SliverAppBar(
+                  expandedHeight: 120,
+                  flexibleSpace: FlexibleSpaceBar(
+                    title: Text(
+                      "${_getGreeting()}, ${user?.name ?? 'Utilisateur'} 👋",
+                      style: const TextStyle(color: Colors.black, fontSize: 16),
+                    ),
+                    centerTitle: false,
+                  ),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                ),
+
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Tes Statistiques", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 15),
+
+                        // --- CARTES DE STATISTIQUES ---
+                        Row(
+                          children: [
+                            _buildStatCard("Projets", projectProvider.projects.length.toString(), Colors.blue),
+                            _buildStatCard("À faire", todoCount.toString(), Colors.orange),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            _buildStatCard("En cours", inProgressCount.toString(), Colors.purple),
+                            _buildStatCard("Terminées", doneCount.toString(), Colors.green),
+                          ],
+                        ),
+
+                        const SizedBox(height: 30),
+                        const Text("Projets récents", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // --- LISTE DES PROJETS RÉCENTS ---
+                projectProvider.projects.isEmpty
+                    ? const SliverToBoxAdapter(
+                  child: Center(child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Text("Aucun projet pour le moment"),
+                  )),
+                )
+                    : SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                      // On affiche les 3 derniers projets par exemple
+                      final projects = projectProvider.projects.reversed.toList();
+                      if (index >= projects.length || index >= 3) return null;
+                      final project = projects[index];
+                      return ListTile(
+                        leading: const Icon(Icons.folder_special, color: Colors.blue),
+                        title: Text(project.name),
+                        subtitle: Text("${project.description}"),
+                        trailing: const Icon(Icons.chevron_right),
+                      );
+                    },
+                    childCount: 3,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-
-            // 2. Cartes de statistiques
-            // Ici on utiliserait idéalement un ListenableBuilder pour TaskProvider
-            const Text("Statistiques", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            _buildStatsGrid(),
-
-            const SizedBox(height: 30),
-
-            // 3. Liste des projets récents
-            const Text("Projets récents", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            _buildRecentProjects(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Widget pour la grille de statistiques
-  Widget _buildStatsGrid() {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.4,
-      children: [
-        // Carte pour le total des projets (on peut garder une couleur neutre/bleue)
-        _statCard("Projets", "5", AppColors.statusInProgress),
-
-        // Cartes utilisant TES couleurs de statut
-        _statCard("À faire", "3", AppColors.statusTodo),
-        _statCard("En cours", "2", AppColors.statusInProgress),
-        _statCard("Terminées", "10", AppColors.statusDone),
-      ],
-    );
-  }
-
-  Widget _statCard(String label, String count, Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: color.withOpacity(0.5)),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(count, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
-          Text(label, style: TextStyle(color: color.withOpacity(0.8))),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRecentProjects() {
-    // Liste factice en attendant ton ProjectProvider
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: 3,
-      itemBuilder: (context, index) {
-        return Card(
-          margin: const EdgeInsets.only(bottom: 10),
-          child: ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.folder)),
-            title: Text("Projet SunuTask ${index + 1}"),
-            subtitle: const Text("Dernière modification : il y a 2h"),
-            trailing: const Icon(Icons.chevron_right),
           ),
         );
       },
+    );
+  }
+
+  // Widget pour créer les cartes de stats
+  Widget _buildStatCard(String title, String value, Color color) {
+    return Expanded(
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
+              const SizedBox(height: 5),
+              Text(title, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

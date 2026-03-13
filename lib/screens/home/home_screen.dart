@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sunu_task/screens/home/tabs/dashboard_tab.dart';
 import 'package:sunu_task/screens/home/tabs/profile_tab.dart';
 import 'package:sunu_task/screens/home/tabs/projects_tab.dart';
 import 'package:sunu_task/screens/home/tabs/tasks_tab.dart';
@@ -20,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Liste des pages pour l'IndexedStack
   // Dans HomeScreen.dart
   final List<Widget> _pages = [
-    const Center(child: Text("Dashboard")),
+    const DashboardTab(),
     const ProjectsTab(),
     const TasksTab(),
     const ProfileTab(),
