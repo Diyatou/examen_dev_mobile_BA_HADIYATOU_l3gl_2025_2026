@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart';
+import 'dart:convert';
 
 /**
  * Pattern Singleton:
@@ -83,8 +84,21 @@ class StorageService {
 
 // 2. Sauvegarder la liste complète (après un register)
   Future<void> saveUsers(List<User> users) async {
-    final String encodedData = jsonEncode(users.map((u) => u.toMap()).toList());
-    await _prefs?.setString('all_users', encodedData);
+    final String encoded = jsonEncode(users.map((u) => u.toMap()).toList());
+    // On utilise 'all_users' comme clé unique
+    await _prefs?.setString('all_users', encoded);
+  }
+
+  Future<void> saveString(String key, String value) async {
+    await _prefs?.setString(key, value);
+  }
+
+  String? getString(String key) {
+    return _prefs?.getString(key);
+  }
+
+  Future<void> remove(String key) async {
+    await _prefs?.remove(key);
   }
 
 }

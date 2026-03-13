@@ -1,113 +1,130 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/project_provider.dart';
+import '../../../providers/task_provider.dart';
+//import '../../providers/auth_provider.dart';
+//import '../../providers/project_provider.dart';
+//import '../../providers/task_provider.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
+    // On récupère les données des différents Providers
+    final authProvider = Provider.of<AuthProvider>(context);
+    final projectProvider = Provider.of<ProjectProvider>(context);
+    final taskProvider = Provider.of<TaskProvider>(context);
+
     final user = authProvider.currentUser;
 
-    // Formater la date d'inscription (ex: 12 mars 2026)
-    // Alternative sans le package intl
-    final String registrationDate = user?.createdAt != null
-        ? "${user!.createdAt.day}/${user!.createdAt.month}/${user!.createdAt.year}"
-        : "Date inconnue";
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        children: [
-          // 1. Avatar, Nom et Email
-          Center(
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Theme.of(context).primaryColor,
-                  child: Text(
-                    user?.name.substring(0, 1).toUpperCase() ?? "U",
-                    style: const TextStyle(fontSize: 40, color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  user?.name ?? "Utilisateur",
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  user?.email ?? "",
-                  style: const TextStyle(color: Colors.grey),
-                ),
-              ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Mon Profil'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: user == null
+          ? const Center(child: Text("Utilisateur non connecté"))
+          : SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            // --- SECTION AVATAR ET INFOS DE BASE ---
+            const CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.blueAccent,
+              child: Icon(Icons.person, size: 50, color: Colors.white),
             ),
-          ),
-
-          const SizedBox(height: 32),
-          const Divider(),
-
-          // 2. Date d'inscription
-          ListTile(
-            leading: const Icon(Icons.calendar_today),
-            title: const Text("Membre depuis"),
-            trailing: Text(registrationDate),
-          ),
-
-          const SizedBox(height: 24),
-
-          // 3. Statistiques personnelles
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text("Vos Statistiques", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildSimpleStatCard("Projets", "5", Colors.blue),
-              const SizedBox(width: 16),
-              _buildSimpleStatCard("Tâches", "15", Colors.green),
-            ],
-          ),
-
-          const SizedBox(height: 40),
-
-          // 4. Bouton de déconnexion
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                // Logique de déconnexion
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-              icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text("Se déconnecter", style: TextStyle(color: Colors.red)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(vertical: 12),
+            const SizedBox(height: 15),
+            Text(
+              user.name,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              user.email,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 10),
+            Chip(
+              label: Text(
+                "Inscrit le : ${user.createdAt.day}/${user.createdAt.month}/${user.createdAt.year}",
+                style: const TextStyle(fontSize: 12),
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(height: 30),
+            const Divider(),
+
+            // --- SECTION STATISTIQUES ---
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Text(
+                "Mes Statistiques",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildStatItem("Projets", projectProvider.projects.length.toString(), Colors.orange),
+                _buildStatItem("Tâches", taskProvider.tasks.length.toString(), Colors.green),
+              ],
+            ),
+
+            const SizedBox(height: 40),
+
+            // --- BOUTON DE DÉCONNEXION ---
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _showLogoutDialog(context, authProvider),
+                icon: const Icon(Icons.logout),
+                label: const Text("Se déconnecter"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSimpleStatCard(String title, String value, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+  // Widget utilitaire pour les petits compteurs
+  Widget _buildStatItem(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
         ),
-        child: Column(
-          children: [
-            Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
-            Text(title, style: TextStyle(color: color.withOpacity(0.8))),
-          ],
-        ),
+        Text(label, style: const TextStyle(color: Colors.grey)),
+      ],
+    );
+  }
+
+  // Dialogue de confirmation pour la déconnexion
+  void _showLogoutDialog(BuildContext context, AuthProvider auth) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Déconnexion"),
+        content: const Text("Es-tu sûr de vouloir nous quitter ?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
+          TextButton(
+            onPressed: () {
+              auth.logout();
+              Navigator.pop(context); // Ferme le dialogue
+            },
+            child: const Text("Oui, me déconnecter", style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

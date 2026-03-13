@@ -1,115 +1,134 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../services/storage_service.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:convert';
 
 class AuthProvider extends ChangeNotifier {
-  //[span_2](start_span) ; // Propriétés privées[span_2](end_span)
-  User? _currentUser ;
+  User? _currentUser;
   bool _isLoading = false;
   String? _error;
 
-  //[span_3](start_span)// Getters publics[span_3](end_span)
+  // Getters publics
   User? get currentUser => _currentUser;
   bool get isAuthenticated => _currentUser != null;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  //[span_4](start_span)// Initialisation : charger l'utilisateur depuis le stockage[span_4](end_span)
+  /// INITIALISATION : Tente de reconnecter l'utilisateur automatiquement
   Future<void> init() async {
     _isLoading = true;
     notifyListeners();
 
-    // FORÇAGE ICI : On s'assure que l'utilisateur est bien vide au début
-    _currentUser = null;
+    try {
+      // 1. On cherche l'ID de l'utilisateur sauvegardé
+      final String? savedUserId = StorageService.instance.getString('logged_user_id');
 
-    // Plus tard, on ira chercher dans StorageService ici
+      if (savedUserId != null) {
+        // 2. On récupère la liste des inscrits
+        List<User> users = StorageService.instance.getUsers();
+
+        // 3. On cherche si cet ID existe toujours
+        if (users.any((u) => u.id == savedUserId)) {
+          _currentUser = users.firstWhere((u) => u.id == savedUserId);
+        }
+      }
+    } catch (e) {
+      debugPrint("Erreur lors de l'initialisation Auth: $e");
+      _currentUser = null;
+    }
 
     _isLoading = false;
-    notifyListeners(); // C'est ce notify qui va dire au main.dart d'afficher le Login !
+    notifyListeners();
   }
 
-  //[span_5](start_span)[span_6](start_span)// Connexion[span_5](end_span)[span_6](end_span)
-
-  // ... dans ta méthode login ...
+  /// CONNEXION
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      // Petit délai pour simuler le réseau et laisser l'UI respirer
-      await Future.delayed(const Duration(milliseconds: 500));
+      // On force une petite attente pour laisser le stockage se réveiller
+      await Future.delayed(const Duration(milliseconds: 800));
 
-      // 1. Récupération des utilisateurs
       List<User> users = StorageService.instance.getUsers();
 
-      // 2. Recherche sécurisée
-      // On utilise any() avant firstWhere pour éviter que firstWhere ne plante si rien n'est trouvé
+      // DEBUG : On regarde si on voit des gens dans la liste
+      print("Tentative de login. Nombre d'utilisateurs inscrits trouvés : ${users.length}");
+
       bool exists = users.any((u) => u.email == email && u.password == password);
 
       if (exists) {
         _currentUser = users.firstWhere((u) => u.email == email && u.password == password);
+        await StorageService.instance.saveString('logged_user_id', _currentUser!.id);
+        print("Connexion réussie pour : ${_currentUser!.name}");
         return true;
       } else {
-        _error = "Email ou mot de passe incorrect";
+        _error = "Email ou mot de passe incorrect (Vérifie si tu t'es bien inscrit)";
         return false;
       }
     } catch (e) {
-      _error = "Une erreur est survenue lors de la connexion";
-      debugPrint("Erreur Login: $e"); // Pour voir le vrai problème dans la console
+      _error = "Erreur technique : $e";
       return false;
     } finally {
-      // CE BLOC S'EXÉCUTE TOUJOURS (Succès ou Échec)
-      // C'est ce qui garantit que le bouton s'arrête de charger
       _isLoading = false;
       notifyListeners();
     }
   }
 
-// ... dans ta méthode register ...
+  /// INSCRIPTION
   Future<bool> register(String name, String email, String password) async {
     _isLoading = true;
+    _error = null;
     notifyListeners();
 
-    List<User> users = StorageService.instance.getUsers();
+    try {
+      // 1. On récupère les utilisateurs déjà existants
+      List<User> users = StorageService.instance.getUsers();
 
-    // 1. Vérifier si l'email existe déjà
-    if (users.any((u) => u.email == email)) {
-      _error = "Cet email est déjà utilisé";
+      // 2. Vérification d'unicité
+      if (users.any((u) => u.email == email)) {
+        _error = "Cet email est déjà utilisé";
+        return false;
+      }
+
+      // 3. Création du nouvel utilisateur
+      final newUser = User(
+        id: const Uuid().v4(),
+        name: name,
+        email: email,
+        password: password,
+      );
+
+      // 4. SAUVEGARDE CRITIQUE : On attend que ce soit écrit sur le disque
+      users.add(newUser);
+      await StorageService.instance.saveUsers(users); // On sauve la liste
+      await StorageService.instance.saveString('logged_user_id', newUser.id); // On sauve la session
+
+      _currentUser = newUser;
+      print("Inscription réussie et sauvegardée pour : ${newUser.email}");
+      return true;
+    } catch (e) {
+      _error = "Erreur lors de l'enregistrement : $e";
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
-
-    // 2. Créer l'objet User avec un ID généré par UUID
-    final newUser = User(
-      id: const Uuid().v4(),
-      name: name,
-      email: email,
-      password: password,
-    );
-
-    // 3. Sauvegarder
-    users.add(newUser);
-    await StorageService.instance.saveUsers(users);
-
-    // 4. Définir comme utilisateur courant
-    _currentUser = newUser;
-    _isLoading = false;
-    notifyListeners();
-    return true;
   }
 
-
-  void logout() {
-  _currentUser = null;
-  notifyListeners();
+  /// DÉCONNEXION
+  Future<void> logout() async {
+    _currentUser = null;
+    // On efface l'ID pour que init() ne nous reconnecte pas au prochain coup
+    await StorageService.instance.remove('logged_user_id');
+    notifyListeners();
   }
 
   void clearError() {
-  _error = null;
-  notifyListeners();
+    _error = null;
+    notifyListeners();
   }
-
 }
