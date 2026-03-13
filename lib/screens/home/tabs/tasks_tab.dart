@@ -16,40 +16,39 @@ class _TasksTabState extends State<TasksTab> {
 
   @override
   Widget build(BuildContext context) {
-    final taskProvider = Provider.of<TaskProvider>(context);
+    return Consumer<TaskProvider>( // <--- Utilise Consumer ici
+      builder: (context, taskProvider, child) {
+        final allTasks = taskProvider.tasks;
 
-    // 1. LOGIQUE DE FILTRAGE : On filtre la liste avant de l'afficher
-    final filteredTasks = taskProvider.tasks.where((task) {
-      bool statusMatch = _selectedStatus == 'Toutes' || task.status == _selectedStatus;
-      bool priorityMatch = _selectedPriority == 'Toutes' || task.priority == _selectedPriority;
-      return statusMatch && priorityMatch;
-    }).toList();
+        final filteredTasks = allTasks.where((task) {
+          bool statusMatch = _selectedStatus == 'Toutes' || task.status == _selectedStatus;
+          bool priorityMatch = _selectedPriority == 'Toutes' || task.priority == _selectedPriority;
+          return statusMatch && priorityMatch;
+        }).toList();
 
-    return Column(
-      children: [
-        // 2. AFFICHAGE DES FILTRES
-        _buildFilters(),
-
-        // 3. AFFICHAGE DE LA LISTE (ou état vide)
-        Expanded(
-          child: filteredTasks.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(
-            itemCount: filteredTasks.length,
-            itemBuilder: (context, index) {
-              final task = filteredTasks[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  title: Text(task.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("Échéance : ${task.dueDate.day}/${task.dueDate.month}"),
-                  trailing: _buildStatusBadge(task.status),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+        return Column(
+          children: [
+            _buildFilters(),
+            Expanded(
+              child: filteredTasks.isEmpty
+                  ? _buildEmptyState(allTasks.length)
+                  : ListView.builder(
+                itemCount: filteredTasks.length,
+                itemBuilder: (context, index) {
+                  final task = filteredTasks[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: ListTile(
+                      title: Text(task.title),
+                      subtitle: Text(task.status),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -93,18 +92,17 @@ class _TasksTabState extends State<TasksTab> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(int totalCount) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.filter_list_off, size: 80, color: Colors.grey[300]),
+          Icon(Icons.assignment_late_outlined, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
-          const Text(
-            "Aucune tâche trouvée",
-            style: TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold),
+          Text(
+            totalCount == 0 ? "Aucune tâche créée" : "Aucun résultat pour ces filtres",
+            style: const TextStyle(fontSize: 18, color: Colors.grey, fontWeight: FontWeight.bold),
           ),
-          const Text("Ajustez vos filtres."),
         ],
       ),
     );
@@ -118,7 +116,6 @@ class _TasksTabState extends State<TasksTab> {
       case 'Terminée': color = AppColors.statusDone; break;
       default: color = Colors.grey;
     }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
@@ -126,10 +123,7 @@ class _TasksTabState extends State<TasksTab> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.5)),
       ),
-      child: Text(
-        status,
-        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
-      ),
+      child: Text(status, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
     );
   }
 }

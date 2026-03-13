@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sunu_task/screens/home/tabs/projects_tab.dart';
+import 'package:sunu_task/screens/home/tabs/tasks_tab.dart';
 import '../../providers/auth_provider.dart';
 import '../projects/project_form_screen.dart';
 import '../tasks/task_form_screen.dart';
@@ -20,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _pages = [
     const Center(child: Text("Dashboard")), // À remplacer par DashboardTab() plus tard
     const ProjectsTab(), // REMPLACE LE TEXTE PAR TON WIDGET ICI
-    const Center(child: Text("Tâches")),
+    const TasksTab(),
     const Center(child: Text("Profil")),
   ];
 

@@ -25,8 +25,6 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AppProvider()..init()),
         ChangeNotifierProvider(create: (_) => AuthProvider()..init()),
-        ChangeNotifierProvider(create: (_) => ProjectProvider()),
-        ChangeNotifierProvider(create: (_) => TaskProvider()),
         ChangeNotifierProvider(create: (_) => ProjectProvider()..loadProjects()),
         ChangeNotifierProvider(create: (_) => TaskProvider()..loadTasks()),
 
