@@ -14,10 +14,10 @@ class ProjectDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. ON ÉCOUTE LE PROVIDER POUR AVOIR LES MISES À JOUR
+    /// 1. ON ÉCOUTE LE PROVIDER POUR AVOIR LES MISES À JOUR
     final projectProvider = Provider.of<ProjectProvider>(context);
 
-    // On récupère la version la plus fraîche du projet depuis la liste
+    /// On récupère la version la plus fraîche du projet depuis la liste
     final currentProject = projectProvider.projects.firstWhere(
           (p) => p.id == project.id,
       orElse: () => project,
@@ -25,7 +25,7 @@ class ProjectDetailScreen extends StatelessWidget {
 
     final taskProvider = Provider.of<TaskProvider>(context);
 
-    // 2. ON CALCULE LES STATS (en utilisant currentProject.id)
+    /// 2. ON CALCULE LES STATS (en utilisant currentProject.id)
     final projectTasks = taskProvider.getTasksByProject(currentProject.id);
     int todoCount = projectTasks.where((t) => t.status == "À faire").length;
     int inProgressCount = projectTasks.where((t) => t.status == "En cours").length;

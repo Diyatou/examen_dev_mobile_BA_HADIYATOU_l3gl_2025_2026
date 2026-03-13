@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sunu_task/models/task.dart';
 import '../../core/constants/app_colors.dart';
+import '../../providers/task_provider.dart';
 import 'task_form_screen.dart';
 
 class TaskDetailScreen extends StatefulWidget {
-  final dynamic task; // À remplacer par ton modèle Task
+  final Task task;
 
   const TaskDetailScreen({super.key, required this.task});
 
@@ -54,11 +57,11 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Badge de Priorité
+            //  Badge de Priorité
             _buildPriorityBadge(widget.task.priority),
             const SizedBox(height: 16),
 
-            // 2. Titre et Description
+            // Titre et Description
             Text(
               widget.task.title,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -71,7 +74,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
             const Divider(height: 40),
 
-            // 3. Date d'échéance
+            // Date d'échéance
             _buildInfoRow(Icons.calendar_month, "Échéance",
                 "${widget.task.dueDate.day}/${widget.task.dueDate.month}/${widget.task.dueDate.year}"),
 
@@ -87,7 +90,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     );
   }
 
-  // --- COMPOSANTS VISUELS ---
+  // ***** COMPOSANTS VISUELS ***
 
   Widget _buildPriorityBadge(String priority) {
     Color color = _getPriorityColor(priority);
@@ -167,17 +170,16 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
           content: const Text("Voulez-vous vraiment supprimer cette tâche ? Cette action est irréversible."),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context), // Ferme juste le dialogue
+              onPressed: () => Navigator.pop(context),
               child: const Text("Annuler"),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
-                // TODO: Appeler la méthode de suppression de ton TaskProvider ici
-                // Exemple: context.read<TaskProvider>().deleteTask(widget.task.id);
+                 context.read<TaskProvider>().deleteTask(widget.task.id);
 
                 Navigator.pop(context);
-                Navigator.pop(context); // Revient à l'écran précédent (la liste)
+                Navigator.pop(context);
               },
               child: const Text("Supprimer", style: TextStyle(color: Colors.white)),
             ),

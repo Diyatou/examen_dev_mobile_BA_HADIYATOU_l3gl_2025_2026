@@ -7,14 +7,14 @@ class ProjectProvider with ChangeNotifier {
   List<Project> _projects = [];
   List<Project> get projects => _projects;
 
-  // 1. CREATE : Ajouter un projet
+  // CREATE : Ajouter un projet
   Future<void> addProject(Project project) async {
     _projects.add(project);
     await _saveToPrefs();
     notifyListeners(); // Prévient l'UI de se mettre à jour
   }
 
-  // 2. READ : Charger depuis SharedPreferences
+  //  READ : Charger depuis SharedPreferences
   Future<void> loadProjects() async {
     final prefs = await SharedPreferences.getInstance();
     final String? projectsData = prefs.getString('projects');
@@ -25,7 +25,7 @@ class ProjectProvider with ChangeNotifier {
     }
   }
 
-  // 3. UPDATE : Modifier un projet
+  //  UPDATE : Modifier un projet
   Future<void> updateProject(Project updatedProject) async {
     // On cherche la position du projet qui a le même ID
     final index = _projects.indexWhere((p) => p.id == updatedProject.id);
@@ -33,7 +33,7 @@ class ProjectProvider with ChangeNotifier {
     if (index != -1) {
       _projects[index] = updatedProject; // On remplace l'ancien par le nouveau
       await _saveToPrefs(); // On sauvegarde dans le téléphone
-      notifyListeners();    // TRÈS IMPORTANT : Dit à l'interface de se redessiner
+      notifyListeners();    // TRÈS IMPORTANT : signaler à l'interface de se redessiner
     }
   }
 

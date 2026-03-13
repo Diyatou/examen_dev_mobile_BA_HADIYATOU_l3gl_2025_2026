@@ -26,7 +26,7 @@ class TaskProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Mettre à jour le statut (très utile pour changer 'En cours' en 'Terminée')
+  // Mettre à jour le statut
   void updateTaskStatus(String taskId, String newStatus) {
     final index = _tasks.indexWhere((t) => t.id == taskId);
     if (index != -1) {

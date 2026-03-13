@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//C'est ici que tu afficheras le détail des tâches, avec des badges de couleur selon leur priorité ou leur statut.
+//ici on  afficheras le détail des tâches, avec des badges de couleur selon leur priorité ou leur statut.
 
 class TaskCard extends StatelessWidget{
   final String title;

@@ -65,14 +65,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _completeOnboarding() async {
-    // 1. On enregistre dans le téléphone que l'onboarding est fini
+    //  On enregistre dans le téléphone que l'onboarding est fini
     await StorageService.instance.setOnboardingComplete(true);
 
-    // 2. On prévient le Provider (très important pour le main.dart)
+    // On prévient le Provider (très important pour le main.dart)
     Provider.of<AppProvider>(context, listen: false).completeOnboarding();
 
     if (mounted) {
-      // 3. On redirige vers le LOGIN selon la consigne 3.3
+      //  On redirige vers le LOGIN selon l'eatat
       Navigator.pushReplacementNamed(context, '/login');
     }
   }
@@ -186,7 +186,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Previous button - visible when not on first page
+
           Visibility(
               visible: _currentPage > 0,
               child: TextButton(

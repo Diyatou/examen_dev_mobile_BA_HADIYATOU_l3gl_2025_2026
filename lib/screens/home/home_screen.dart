@@ -19,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
   // Liste des pages pour l'IndexedStack
-  // Dans HomeScreen.dart
   final List<Widget> _pages = [
     const DashboardTab(),
     const ProjectsTab(),
@@ -96,14 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-      // 2. CORPS AVEC INDEXEDSTACK
+      //  CORPS AVEC INDEXEDSTACK
       body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
       ),
 
 
-      // 3. FLOATING ACTION BUTTON (Maintenant visible sur Dashboard, Projets ET Tâches)
+      //  FLOATING ACTION BUTTON
       floatingActionButton: (_selectedIndex == 0 || _selectedIndex == 1 || _selectedIndex == 2)
           ? FloatingActionButton(
         onPressed: () {
@@ -115,7 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           } else if (_selectedIndex == 2) {
             // Si on est sur l'onglet Tâches -> Formulaire Tâche
-            // Note : Ici on ne passe pas de projectId car on est sur la liste globale
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const TaskFormScreen(projectId: '',)),

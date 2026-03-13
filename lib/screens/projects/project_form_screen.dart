@@ -5,7 +5,7 @@ import '../../models/project.dart';
 import '../../providers/project_provider.dart';
 
 class ProjectFormScreen extends StatefulWidget {
-  final Project? project; // Utilise maintenant le vrai modèle
+  final Project? project;
 
   const ProjectFormScreen({super.key, this.project});
 
@@ -39,7 +39,7 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
     super.dispose();
   }
 
-  // --- LA LOGIQUE DE SAUVEGARDE ---
+  // ******* LA LOGIQUE DE SAUVEGARDE ******
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final projectProvider = Provider.of<ProjectProvider>(context, listen: false);
@@ -55,20 +55,20 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
         );
         projectProvider.addProject(newProject);
       } else {
-        // --- CAS MODIFICATION ---
-        // On crée un nouvel objet avec le MÊME ID que l'ancien
+        // **** CAS MODIFICATION ****
+
         final updatedProject = Project(
           id: widget.project!.id,
           name: _nameController.text,
           description: _descriptionController.text,
           color: _selectedColor,
-          createdAt: widget.project!.createdAt, // On garde la date d'origine
+          createdAt: widget.project!.createdAt,
         );
 
         projectProvider.updateProject(updatedProject);
       }
 
-      Navigator.pop(context); // Retour à l'écran précédent
+      Navigator.pop(context);
     }
   }
 

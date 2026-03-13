@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-//Cette carte servira à afficher tes différents projets sur l'écran d'accueil.
+//Cette carte servira à afficher nos différents projets sur l'écran d'accueil.
 
 class ProjectCard extends StatelessWidget{
   final String name;

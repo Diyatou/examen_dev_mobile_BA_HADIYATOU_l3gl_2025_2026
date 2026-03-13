@@ -9,7 +9,7 @@ import 'package:sunu_task/providers/app_provider.dart';
 import 'package:sunu_task/providers/auth_provider.dart';
 import 'package:sunu_task/providers/project_provider.dart';
 import 'package:sunu_task/providers/task_provider.dart';
-// Importe aussi tes futurs écrans
+
 import 'package:sunu_task/screens/onboarding/onboarding_screen.dart';
 import 'package:sunu_task/screens/auth/login_screen.dart';
 import 'package:sunu_task/screens/home/home_screen.dart';
